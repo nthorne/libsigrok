@@ -192,26 +192,24 @@ static GSList *scan(struct sr_dev_driver *di, GSList *options)
 		 * All ASIX logic analyzers have a serial number, which
 		 * reads as a hex number, and tells the device type.
 		 */
-		ret = sr_atol_base(serno_txt, &serno_num, &end, 16);
-		if (ret != SR_OK || !end || *end) {
-			sr_warn("Cannot interpret serial number %s.", serno_txt);
-			continue;
-		}
 		dev_type = ASIX_TYPE_NONE;
 		dev_text = NULL;
-		serno_pre = serno_num >> 16;
-		switch (serno_pre) {
-		case 0xa601:
+
+                if (4 > strlen(serno_txt))
+                {
+			sr_warn("Unknown serno %s, skipping.", serno_txt);
+			continue;
+                }
+
+                if (0 == strncmp(serno_txt, "A601", 4)) {
 			dev_type = ASIX_TYPE_SIGMA;
 			dev_text = "SIGMA";
 			sr_info("Found SIGMA, serno %s.", serno_txt);
-			break;
-		case 0xa602:
+                } else if (0 == strncmp(serno_txt, "A602", 4)) {
 			dev_type = ASIX_TYPE_SIGMA;
 			dev_text = "SIGMA2";
 			sr_info("Found SIGMA2, serno %s.", serno_txt);
-			break;
-		case 0xa603:
+                } else if (0 == strncmp(serno_txt, "A603", 4)) {
 			dev_type = ASIX_TYPE_OMEGA;
 			dev_text = "OMEGA";
 			sr_info("Found OMEGA, serno %s.", serno_txt);
@@ -219,11 +217,10 @@ static GSList *scan(struct sr_dev_driver *di, GSList *options)
 				sr_warn("OMEGA support is not implemented yet.");
 				continue;
 			}
-			break;
-		default:
+                } else {
 			sr_warn("Unknown serno %s, skipping.", serno_txt);
 			continue;
-		}
+                }
 
 		/* Create a device instance, add it to the result set. */
 
